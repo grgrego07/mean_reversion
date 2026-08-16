@@ -1,1 +1,18 @@
- schedule: - cron: '0 */6 * * *' workflow_dispatch: {} jobs: wake: runs-on: ubuntu-latest steps: - uses: actions/checkout@v4 - uses: actions/setup-python@v5 with: python-version: '3.11' - run: pip install playwright && playwright install --with-deps chromium - run: | python - <<'EOF' from playwright.sync_api import sync_playwright with sync_playwright() as p: browser = p.chromium.launch() page = browser.new_page() page.goto('https://meanreversiontool.streamlit.app/', wait_until='domcontentloaded', timeout=120000) page.wait_for_timeout(5000) btn = page.get_by_role('button', name='Yes, get this app back up!') if btn.count() > 0: btn.click() page.wait_for_timeout(60000) browser.close() EOF
+name: Keep Streamlit App Awake
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install playwright
+      - run: playwright install --with-deps chromium
+      - run: python keepalive.py
